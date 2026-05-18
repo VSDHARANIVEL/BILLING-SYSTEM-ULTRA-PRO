@@ -63,7 +63,7 @@
 <main class="main">
   <div class="topbar">
     <div class="topbar-title" id="topTitle">Create New Bill</div>
-    <div class="topbar-right" id="topRight">Not signed in</div>
+    <div class="topbar-right" id="topRight">Billing System Pro</div>
   </div>
 
   <div class="content">
@@ -86,12 +86,11 @@ python app.py</pre>
       <div class="card">
         <div class="card-title">Customer Information
           <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:8px;">
-            Enter moves field → Address Enter jumps to Stock Code
           </span>
         </div>
         <div class="form-row">
           <div class="form-group"><label>Customer Name *</label>
-            <input id="bCN" type="text" placeholder="John Doe" onkeydown="ek(event,'bCP')"></div>
+            <input id="bCN" type="text" placeholder="ABC" onkeydown="ek(event,'bCP')"></div>
           <div class="form-group"><label>Phone Number *</label>
             <input id="bCP" type="tel" maxlength="10" placeholder="10 digits" onkeydown="ek(event,'bEmail')"></div>
         </div>
@@ -106,13 +105,12 @@ python app.py</pre>
       <div class="card">
         <div class="card-title">Add Items
           <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:8px;">
-            3-digit code → auto-fills Name &amp; Price → Enter Qty → Enter adds &amp; loops back
           </span>
         </div>
         <div class="form-row">
           <div class="form-group"><label>Stock Code (3 digits)</label>
             <div class="input-wrap">
-              <input id="bCode" type="text" maxlength="3" placeholder="e.g. 114" oninput="lookupProduct()">
+              <input id="bCode" type="text" maxlength="3" placeholder="e.g. 100" oninput="lookupProduct()">
               <span id="lookupBadge" class="input-badge"></span>
             </div>
             <div id="lstatus" class="lookup-status"></div>
@@ -164,7 +162,7 @@ python app.py</pre>
       <h2 class="sec-title">Stock Manager</h2>
       <div class="card">
         <div class="card-title">Add New Product
-          <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:8px;">Enter: Code→Name→Price→Qty→adds</span>
+          <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:8px;"></span>
         </div>
         <div class="form-row">
           <div class="form-group"><label>Code (3 digits)</label>
@@ -439,7 +437,7 @@ python app.py</pre>
         </div>
         <div class="card" style="border-top:3px solid var(--primary);">
           <div class="card-title">🛡️ Manager Login</div>
-          <p class="text-muted" style="font-size:12px;">Full access: all workers, attendance, reports.</p>
+          <p class="text-muted" style="font-size:12px;">Full Access: All workers, Attendance, Reports.</p>
           <div class="form-row mt-12">
             <div class="form-group"><label>Username</label>
               <input id="accMgrU" type="text" onkeydown="ek(event,'accMgrP')"></div>
@@ -451,7 +449,7 @@ python app.py</pre>
             <button class="btn btn-primary" onclick="managerLogin()">Manager Login</button>
           </div>
           <div id="accMgrMsg" class="msg-box"></div>
-          <p class="text-muted" style="font-size:11px;margin-top:8px;">Default: <code>manager / manager123</code></p>
+          <p class="text-muted" style="font-size:11px;margin-top:8px;"> <code> </code></p>
         </div>
       </div>
       <div id="accAttPanel" class="card hidden" style="border-top:3px solid var(--primary);margin-top:16px;">

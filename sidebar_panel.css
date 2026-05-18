@@ -1,0 +1,169 @@
+/* =============================================================
+   sidebar_panel.css  —  BillPro NEW FEATURES
+   1.  Sidebar collapse toggle button
+   2.  Sidebar "Last Bill" button placed above clock
+   3.  Slide-in Last Bill panel — fully invisible when closed
+   ============================================================= */
+
+/* ── 1. SIDEBAR base transition ── */
+.sidebar {
+  position: relative !important;
+  overflow: hidden !important;
+  transition: width 0.30s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ── 2. COLLAPSE TOGGLE BUTTON (right edge) ── */
+#sidebarToggle {
+  position: absolute;
+  top: 20px;
+  right: -14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.28);
+  background: var(--primary, #4f46e5);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.28);
+  transition: background 0.2s, transform 0.2s;
+}
+#sidebarToggle:hover { background: #6366f1; transform: scale(1.12); }
+
+/* ── 3. COLLAPSED STATE — hide ALL text, labels, clock ── */
+.sidebar.collapsed { width: 58px !important; min-width: 58px !important; }
+.sidebar.collapsed .sb-logo         { display: none !important; }
+.sidebar.collapsed .sb-group-label  { display: none !important; }
+.sidebar.collapsed .sb-clock        { display: none !important; }
+
+/* Nav items */
+.sidebar.collapsed .ni              { justify-content: center !important; padding: 10px 0 !important; }
+.sidebar.collapsed .ni .ni-txt      { display: none !important; }
+.sidebar.collapsed .ni .ni-ic       { font-size: 22px !important; margin: 0 !important; }
+
+/* Last Bill button */
+.sidebar.collapsed .sb-last-bill-btn {
+  justify-content: center !important;
+  padding: 10px 0 !important;
+  margin: 0 !important;
+  width: 100% !important;
+  border-radius: 0 !important;
+  border: none !important;
+}
+.sidebar.collapsed .sb-last-bill-btn .ni-txt { display: none !important; }
+.sidebar.collapsed .sb-last-bill-btn .ni-ic  { font-size: 22px !important; margin: 0 !important; }
+
+/* ── 4. LAST BILL BUTTON inside sidebar, above clock ── */
+.sb-last-bill-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin: 4px 10px 8px 10px;
+  width: calc(100% - 20px);
+  box-sizing: border-box;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.88);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.18s, color 0.18s;
+}
+.sb-last-bill-btn:hover { background: rgba(255,255,255,0.22); color: #fff; }
+.sb-last-bill-btn .ni-ic { font-size: 17px; flex-shrink: 0; }
+
+/* ── 5. SLIDE-IN PANEL — fully hidden by default ── */
+#lastBillPanel {
+  position: fixed;
+  top: 0; right: 0;
+  width: 340px;
+  height: 100vh;
+  background: #fff;
+  border-left: 3px solid var(--primary, #4f46e5);
+  box-shadow: -6px 0 32px rgba(0,0,0,0.18);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 0.32s cubic-bezier(0.4,0,0.2,1), visibility 0s linear 0.32s;
+}
+#lastBillPanel.open {
+  transform: translateX(0);
+  visibility: visible;
+  pointer-events: all;
+  transition: transform 0.32s cubic-bezier(0.4,0,0.2,1), visibility 0s linear 0s;
+}
+
+/* Header */
+#lastBillPanel .lbp-head {
+  background: var(--primary, #4f46e5);
+  color: #fff;
+  padding: 15px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+/* Scrollable body */
+#lastBillPanel .lbp-body { padding: 16px 18px; overflow-y: auto; flex: 1; }
+/* Close btn */
+#lastBillPanel .lbp-close {
+  background: rgba(255,255,255,0.18);
+  border: none; color: #fff; font-size: 16px; cursor: pointer;
+  border-radius: 6px; width: 28px; height: 28px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.18s;
+}
+#lastBillPanel .lbp-close:hover { background: rgba(255,255,255,0.36); }
+/* Row */
+#lastBillPanel .lbp-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; padding: 9px 0; border-bottom: 1px solid #f2f2f2; font-size: 13px;
+}
+#lastBillPanel .lbp-label { color:#999; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; white-space:nowrap; flex-shrink:0; }
+#lastBillPanel .lbp-value { font-weight:600; color:#222; text-align:right; word-break:break-word; }
+/* Total */
+#lastBillPanel .lbp-total {
+  margin-top: 16px; background: var(--primary,#4f46e5); color: #fff;
+  border-radius: 10px; padding: 13px 16px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-weight: 700; font-size: 15px;
+}
+/* Empty / loading */
+#lastBillPanel .lbp-empty { text-align:center; color:#bbb; margin-top:50px; font-size:14px; line-height:2; }
+/* Footer refresh */
+#lastBillPanel .lbp-foot { padding: 12px 18px; border-top: 1px solid #f0f0f0; flex-shrink: 0; }
+#lastBillPanel .lbp-foot button { width: 100%; }
+
+/* ── 6. OVERLAY — fully invisible when closed ── */
+#lbpOverlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.22);
+  z-index: 9998;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.32s, visibility 0s linear 0.32s;
+}
+#lbpOverlay.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: all;
+  transition: opacity 0.32s, visibility 0s linear 0s;
+}

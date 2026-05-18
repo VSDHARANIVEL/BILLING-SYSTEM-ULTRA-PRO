@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Billing System Pro</title>
+<link rel="stylesheet" href="billing_style.css" />
+<link rel="stylesheet" href="sidebar_panel.css" />
+</head>
+<body>
+
+<!-- ───── SIDEBAR ───── -->
+<aside class="sidebar" id="sidebar">
+
+  <!-- Collapse button on right edge -->
+  <button id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">
+    <span id="toggleIcon">◀</span>
+  </button>
+
+  <div class="sb-logo">
+    <div class="sb-icon">BP</div>
+    <div>
+      <div class="sb-title">Billing System Pro</div>
+      <div class="sb-sub">Database Edition</div>
+    </div>
+  </div>
+
+  <nav class="sb-nav">
+    <div class="sb-group-label">Billing</div>
+    <div class="ni active" data-page="bill" onclick="navTo('bill')">
+      <span class="ni-ic">🧾</span><span class="ni-txt"> Create New Bill</span></div>
+    <div class="ni" data-page="stock" onclick="navTo('stock')">
+      <span class="ni-ic">📦</span><span class="ni-txt"> Stock Manager</span></div>
+    <div class="ni" data-page="customer" onclick="navTo('customer')">
+      <span class="ni-ic">👤</span><span class="ni-txt"> Customer Lookup</span></div>
+
+    <div class="sb-group-label">Workers</div>
+    <div class="ni" data-page="incentives" onclick="navTo('incentives')">
+      <span class="ni-ic">🏆</span><span class="ni-txt"> Worker Incentives</span></div>
+
+    <div class="sb-group-label">Reports</div>
+    <div class="ni" data-page="reports" onclick="navTo('reports')">
+      <span class="ni-ic">📊</span><span class="ni-txt"> Reports</span></div>
+
+    <div class="sb-group-label">System</div>
+    <div class="ni" data-page="account" onclick="navTo('account')">
+      <span class="ni-ic">🔐</span><span class="ni-txt"> Login / Account</span></div>
+  </nav>
+
+  <!-- ★ LAST BILL BUTTON — above the clock ★ -->
+  <button class="sb-last-bill-btn" id="sbLastBillBtn" onclick="openLastBillPanel()" title="View last bill">
+    <span class="ni-ic">🧾</span>
+    <span class="ni-txt"> Last Bill</span>
+  </button>
+
+  <div class="sb-clock">
+    <div class="cl-date" id="clDate">—</div>
+    <div class="cl-time" id="clTime">—</div>
+  </div>
+</aside>
+
+<!-- ───── MAIN ───── -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topTitle">Create New Bill</div>
+    <div class="topbar-right" id="topRight">Not signed in</div>
+  </div>
+
+  <div class="content">
+
+    <!-- DB banner — only shows if backend is truly down -->
+    <div id="dbBanner" class="card hidden" style="border-left:5px solid var(--red);background:#fff5f5;">
+      <h3 style="color:var(--red);margin-bottom:8px;">⚠️ Backend Not Connected</h3>
+      <p>Start the Flask backend first:</p>
+      <pre style="background:#fff0f0;padding:8px 12px;border-radius:6px;font-size:12px;margin:8px 0;overflow-x:auto;">pip install flask flask-cors openpyxl
+python app.py</pre>
+      <p style="font-size:12px;color:#888;">Then open <strong>http://localhost:5000</strong> — do NOT open the HTML file directly.</p>
+      <p id="dbBannerErr" style="font-size:12px;color:var(--red);margin-top:6px;font-weight:600;"></p>
+    </div>
+
+    <!-- PAGE: BILL -->
+    <section id="page-bill" class="page active">
+      <h2 class="sec-title">Create New Bill
+        <span class="bill-id-badge">Bill # <span id="billNo">—</span></span>
+      </h2>
+      <div class="card">
+        <div class="card-title">👤 Customer Information
+          <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:8px;">
+            Enter moves field → Address Enter jumps to Stock Code
+          </span>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Customer Name *</label>
+            <input id="bCN" type="text" placeholder="John Doe" onkeydown="ek(event,'bCP')"></div>
+          <div class="form-group"><label>Phone Number *</label>
+            <input id="bCP" type="tel" maxlength="10" placeholder="10 digits" onkeydown="ek(event,'bEmail')"></div>
+        </div>
+        <div class="form-row mt-12">
+          <div class="form-group"><label>Email</label>
+            <input id="bEmail" type="email" placeholder="optional" onkeydown="ek(event,'bAddr')"></div>
+          <div class="form-group"><label>Address</label>
+            <input id="bAddr" type="text" placeholder="optional" onkeydown="addrEnterNext(event)"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📦 Add Items
+          <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:8px;">
+            3-digit code → auto-fills Name &amp; Price → Enter Qty → Enter adds &amp; loops back
+          </span>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Stock Code (3 digits)</label>
+            <div class="input-wrap">
+              <input id="bCode" type="text" maxlength="3" placeholder="e.g. 114" oninput="lookupProduct()">
+              <span id="lookupBadge" class="input-badge"></span>
+            </div>
+            <div id="lstatus" class="lookup-status"></div>
+          </div>
+          <div class="form-group"><label>Product Name</label>
+            <input id="bPN" type="text" readonly></div>
+          <div class="form-group"><label>Price (₹)</label>
+            <input id="bPr" type="text" readonly></div>
+          <div class="form-group" style="max-width:80px;"><label>Qty</label>
+            <input id="bQty" type="number" min="1" value="1" onkeydown="qtyEnterAdd(event)"></div>
+          <div class="form-group" style="justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="addItem()">➕ Add Item</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🧾 Bill Items</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>#</th><th>Item</th><th>Qty</th><th>Price</th><th>Discount</th><th>Total</th><th>Action</th></tr></thead>
+            <tbody id="billTbody"><tr><td colspan="7" class="empty-td">No items added</td></tr></tbody>
+          </table>
+        </div>
+        <div class="bill-total-box mt-16">
+          <div class="bt-row"><span>Subtotal:</span><span id="bSubtotal">₹0.00</span></div>
+          <div class="bt-row bt-grand"><span>Total Amount:</span><span id="bTotal">₹0.00</span></div>
+        </div>
+        <hr class="sep">
+        <div class="form-row">
+          <div class="form-group"><label>Worker Number</label>
+            <div class="input-wrap">
+              <input id="bWorker" type="text" placeholder="e.g. 01" oninput="previewWorker()"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('bCode').focus();}">
+              <span id="workerBadge" class="input-badge"></span>
+            </div>
+            <input id="bWorkerName" type="hidden">
+          </div>
+        </div>
+        <div class="bill-actions">
+          <button class="btn btn-outline" onclick="clearBill()">🗑 Clear Bill</button>
+          <button class="btn btn-success" onclick="submitBill()">✅ Generate Bill</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: STOCK -->
+    <section id="page-stock" class="page">
+      <h2 class="sec-title">Stock Manager</h2>
+      <div class="card">
+        <div class="card-title">Add New Product
+          <span style="font-size:11px;color:var(--text3);font-weight:400;margin-left:8px;">Enter: Code→Name→Price→Qty→adds</span>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Code (3 digits)</label>
+            <input id="pCode" maxlength="3" type="text" onkeydown="ek(event,'pName')"></div>
+          <div class="form-group"><label>Product Name</label>
+            <input id="pName" type="text" onkeydown="ek(event,'pPrice')"></div>
+          <div class="form-group"><label>Price (₹)</label>
+            <input id="pPrice" type="number" min="0" step="0.01" onkeydown="ek(event,'pStock')"></div>
+          <div class="form-group"><label>Stock Qty</label>
+            <input id="pStock" type="number" min="0"
+                   onkeydown="if(event.key==='Enter'){event.preventDefault();addProduct();}"></div>
+          <div class="form-group" style="justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="addProduct()">📦 Add Product</button>
+          </div>
+        </div>
+        <div id="pMsg" class="msg-box"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Current Stock</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Code</th><th>Name</th><th>Price</th><th>Stock</th><th>Value</th><th>Action</th></tr></thead>
+            <tbody id="stockTbody"><tr><td colspan="6" class="empty-td">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: CUSTOMER -->
+    <section id="page-customer" class="page">
+      <h2 class="sec-title">Customer Lookup</h2>
+      <div class="card">
+        <div class="card-title">Search by Phone Number</div>
+        <div class="form-row">
+          <div class="form-group"><label>Phone</label>
+            <input id="cPhone" type="tel" maxlength="10" placeholder="10 digits"
+                   onkeydown="if(event.key==='Enter'){event.preventDefault();lookupCustomer();}"></div>
+          <div class="form-group" style="justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="lookupCustomer()">🔍 Search</button>
+          </div>
+        </div>
+        <div id="custResultBox" class="hidden"></div>
+      </div>
+    </section>
+
+    <!-- PAGE: INCENTIVES -->
+    <section id="page-incentives" class="page">
+      <h2 class="sec-title">Worker Incentives (₹1 per piece)</h2>
+      <div class="card sup-card">
+        <div class="card-title">🔐 Supervisor Access</div>
+        <div id="supLoginBlock">
+          <div class="form-row">
+            <div class="form-group"><label>Username</label>
+              <input id="supU" type="text" onkeydown="ek(event,'supP')"></div>
+            <div class="form-group"><label>Password</label>
+              <input id="supP" type="password"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();supervisorLogin();}"></div>
+            <div class="form-group" style="justify-content:flex-end;">
+              <button class="btn btn-warning" onclick="supervisorLogin()">🔐 Login</button>
+            </div>
+          </div>
+          <div id="supMsg" class="msg-box"></div>
+          <p class="text-muted" style="margin-top:6px;font-size:12px;">
+            New here? <a href="#" onclick="navTo('account');return false;" style="color:var(--primary);">Create supervisor account →</a>
+          </p>
+        </div>
+        <div id="supActiveBlock" class="hidden">
+          <div class="sup-controls">
+            <span class="sup-active-badge">✅ Supervisor: <span id="supWho">—</span></span>
+            <button class="btn btn-danger btn-sm" onclick="clearIncentives()">🗑 Clear All Incentives</button>
+            <button class="btn btn-outline btn-sm" onclick="supervisorLogout()">Logout</button>
+          </div>
+          <hr class="sep">
+          <div class="card-title" style="border:none;padding:0;margin-top:0;">✏️ Edit Worker Incentive Manually</div>
+          <div class="form-row">
+            <div class="form-group"><label>Worker Number</label>
+              <input id="supEW" type="text" onkeydown="ek(event,'supEA')"></div>
+            <div class="form-group"><label>Adjust Pieces (+ / −)</label>
+              <input id="supEA" type="number" onkeydown="ek(event,'supEN')"></div>
+            <div class="form-group"><label>Note (optional)</label>
+              <input id="supEN" type="text"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();supervisorEditIncentive();}"></div>
+            <div class="form-group" style="justify-content:flex-end;">
+              <button class="btn btn-primary" onclick="supervisorEditIncentive()">✏️ Apply</button>
+            </div>
+          </div>
+          <div id="supEditMsg" class="msg-box"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Add New Worker</div>
+        <div class="form-row">
+          <div class="form-group"><label>Worker Number</label>
+            <input id="wNum" type="text" onkeydown="ek(event,'wName')"></div>
+          <div class="form-group"><label>Worker Name</label>
+            <input id="wName" type="text"
+                   onkeydown="if(event.key==='Enter'){event.preventDefault();addWorker();}"></div>
+          <div class="form-group" style="justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="addWorker()">➕ Add Worker</button>
+          </div>
+        </div>
+        <div id="wMsg" class="msg-box"></div>
+      </div>
+      <div class="card">
+        <div class="card-title">Worker Performance</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Number</th><th>Name</th><th>Pieces</th><th>Bills</th><th>Incentive</th><th>Action</th></tr></thead>
+            <tbody id="incTbody"><tr><td colspan="6" class="empty-td">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: REPORTS -->
+    <section id="page-reports" class="page">
+      <h2 class="sec-title">Reports &amp; Analytics</h2>
+      <div class="report-tabs">
+        <div class="rtab active" id="rtab-sales"   onclick="showReportTab('sales')">📑 Sales Reports</div>
+        <div class="rtab"        id="rtab-daily"   onclick="showReportTab('daily')">📊 Daily Report</div>
+        <div class="rtab"        id="rtab-monthly" onclick="showReportTab('monthly')">📈 Monthly Report</div>
+      </div>
+      <div class="report-subpage active" id="rpage-sales">
+        <div class="flex-end" style="margin-bottom:12px;">
+          <button class="btn btn-outline btn-sm" onclick="loadReports()">🔄 Refresh</button>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card stat-bl"><div class="stat-ic">💰</div>
+            <div><div class="stat-label">Total Sales</div><div class="stat-value" id="rSales">—</div></div></div>
+          <div class="stat-card stat-gn"><div class="stat-ic">🧾</div>
+            <div><div class="stat-label">Total Bills</div><div class="stat-value" id="rBills">—</div></div></div>
+          <div class="stat-card stat-am"><div class="stat-ic">👥</div>
+            <div><div class="stat-label">Customers</div><div class="stat-value" id="rCusts">—</div></div></div>
+          <div class="stat-card stat-cy"><div class="stat-ic">🏆</div>
+            <div><div class="stat-label">Incentives</div><div class="stat-value" id="rInc">—</div></div></div>
+        </div>
+        <div class="rep-grid">
+          <div class="card">
+            <div class="card-title">Recent Bills</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Bill#</th><th>Date</th><th>Customer</th><th>Phone</th><th>Amount</th><th>Worker</th></tr></thead>
+                <tbody id="repBillsTb"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Top Products</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Product</th><th>Units</th><th>Revenue</th></tr></thead>
+                <tbody id="repProdTb"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="report-subpage" id="rpage-daily">
+        <div class="card">
+          <div class="card-title">📊 Daily Attendance Report
+            <span style="font-size:11px;color:var(--green);font-weight:600;margin-left:8px;">✅ Open to all</span>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Date</label>
+              <input id="dlyDate" type="date" onkeydown="if(event.key==='Enter'){event.preventDefault();loadDaily();}"></div>
+            <div class="form-group" style="justify-content:flex-end;">
+              <button class="btn btn-primary" onclick="loadDaily()">🔄 Load</button>
+            </div>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card stat-gn"><div class="stat-ic">✅</div>
+            <div><div class="stat-label">Present</div><div class="stat-value" id="dlyP">—</div></div></div>
+          <div class="stat-card stat-am"><div class="stat-ic">⏱</div>
+            <div><div class="stat-label">Half-day</div><div class="stat-value" id="dlyH">—</div></div></div>
+          <div class="stat-card stat-cy"><div class="stat-ic">🌴</div>
+            <div><div class="stat-label">Leave</div><div class="stat-value" id="dlyL">—</div></div></div>
+          <div class="stat-card stat-bl" style="border-left-color:var(--red);">
+            <div class="stat-ic">❌</div>
+            <div><div class="stat-label">Absent</div><div class="stat-value" id="dlyA" style="color:var(--red);">—</div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Worker-wise Status</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Worker #</th><th>Name</th><th>Status</th></tr></thead>
+              <tbody id="dlyTbody"><tr><td colspan="3" class="empty-td">Select a date and click Load</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="report-subpage" id="rpage-monthly">
+        <div id="monLoginGate" class="card hidden" style="border-left:4px solid var(--amber);background:var(--amber-bg);">
+          <p style="font-size:15px;font-weight:700;color:var(--amber);margin-bottom:8px;">🔒 Login Required</p>
+          <p>Monthly Report is for Supervisors and Managers only.</p>
+          <a href="#" onclick="navTo('account');return false;" style="color:var(--primary);font-weight:600;display:inline-block;margin-top:10px;">→ Go to Login / Account Page</a>
+        </div>
+        <div id="monBody" class="hidden">
+          <div class="card">
+            <div class="card-title">📈 Monthly Attendance Report</div>
+            <div class="form-row">
+              <div class="form-group"><label>Year</label>
+                <input id="monYear" type="number" min="2020" max="2099" onkeydown="ek(event,'monMonth')"></div>
+              <div class="form-group"><label>Month</label>
+                <select id="monMonth">
+                  <option value="1">January</option><option value="2">February</option>
+                  <option value="3">March</option><option value="4">April</option>
+                  <option value="5">May</option><option value="6">June</option>
+                  <option value="7">July</option><option value="8">August</option>
+                  <option value="9">September</option><option value="10">October</option>
+                  <option value="11">November</option><option value="12">December</option>
+                </select></div>
+              <div class="form-group" style="justify-content:flex-end;">
+                <button class="btn btn-primary" onclick="loadMonthly()">🔄 Load</button>
+              </div>
+              <div class="form-group" style="justify-content:flex-end;">
+                <button class="btn btn-success" onclick="downloadExcel()">⬇ Download Excel</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Month Summary</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Worker #</th><th>Name</th><th>Present</th><th>Half-day</th><th>Leave</th><th>Absent</th><th>Total Present Days</th></tr></thead>
+                <tbody id="monTbody"><tr><td colspan="7" class="empty-td">Click Load to view</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE: ACCOUNT -->
+    <section id="page-account" class="page">
+      <h2 class="sec-title">Login / Account</h2>
+      <div id="accSignedIn" class="card hidden" style="border-top:3px solid var(--green);">
+        <div class="card-title">✅ Signed In</div>
+        <p>Role: <strong id="accRole">—</strong></p>
+        <p>Username: <strong id="accUser">—</strong></p>
+        <div class="bill-actions">
+          <button class="btn btn-danger" onclick="anyLogout()">Logout</button>
+        </div>
+      </div>
+      <div id="accForms" class="rep-grid">
+        <div class="card" style="border-top:3px solid var(--amber);">
+          <div class="card-title">👨‍💼 Supervisor Login</div>
+          <div class="form-row">
+            <div class="form-group"><label>Username</label>
+              <input id="accSupU" type="text" onkeydown="ek(event,'accSupP')"></div>
+            <div class="form-group"><label>Password</label>
+              <input id="accSupP" type="password"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();supervisorLoginFull();}"></div>
+          </div>
+          <div class="bill-actions" style="margin-top:10px;">
+            <button class="btn btn-warning" onclick="supervisorLoginFull()">Supervisor Login</button>
+          </div>
+          <div id="accSupMsg" class="msg-box"></div>
+          <hr class="sep">
+          <div class="card-title" style="border:none;padding:0;">📝 Create Supervisor Account</div>
+          <div class="form-row">
+            <div class="form-group"><label>New Username</label>
+              <input id="accRegU" type="text" onkeydown="ek(event,'accRegP')"></div>
+            <div class="form-group"><label>New Password</label>
+              <input id="accRegP" type="password"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();supervisorRegister();}"></div>
+          </div>
+          <div class="bill-actions" style="margin-top:10px;">
+            <button class="btn btn-primary" onclick="supervisorRegister()">Create Account</button>
+          </div>
+          <div id="accRegMsg" class="msg-box"></div>
+        </div>
+        <div class="card" style="border-top:3px solid var(--primary);">
+          <div class="card-title">🛡️ Manager Login</div>
+          <p class="text-muted" style="font-size:12px;">Full access: all workers, attendance, reports.</p>
+          <div class="form-row mt-12">
+            <div class="form-group"><label>Username</label>
+              <input id="accMgrU" type="text" onkeydown="ek(event,'accMgrP')"></div>
+            <div class="form-group"><label>Password</label>
+              <input id="accMgrP" type="password"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();managerLogin();}"></div>
+          </div>
+          <div class="bill-actions" style="margin-top:10px;">
+            <button class="btn btn-primary" onclick="managerLogin()">Manager Login</button>
+          </div>
+          <div id="accMgrMsg" class="msg-box"></div>
+          <p class="text-muted" style="font-size:11px;margin-top:8px;">Default: <code>manager / manager123</code></p>
+        </div>
+      </div>
+      <div id="accAttPanel" class="card hidden" style="border-top:3px solid var(--primary);margin-top:16px;">
+        <div class="card-title">📅 Mark Attendance
+          <span id="attRoleBadge" style="font-size:11px;font-weight:600;margin-left:10px;padding:2px 10px;border-radius:12px;"></span>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Date</label>
+            <input id="attDate" type="date" onkeydown="if(event.key==='Enter'){event.preventDefault();loadAttendance();}"></div>
+          <div class="form-group" style="justify-content:flex-end;align-self:flex-end;">
+            <button class="btn btn-outline" onclick="loadAttendance()">🔄 Refresh</button>
+          </div>
+        </div>
+        <p class="text-muted" style="font-size:12px;margin-top:8px;">
+          <strong>P</strong>=Present &nbsp;•&nbsp; <strong>A</strong>=Absent
+          &nbsp;•&nbsp; <strong>H</strong>=Half-day &nbsp;•&nbsp; <strong>L</strong>=Leave
+        </p>
+        <div class="table-wrap mt-12">
+          <table>
+            <thead>
+              <tr>
+                <th>Worker #</th><th>Name</th>
+                <th id="attSupCol" class="hidden">Supervisor</th>
+                <th>Status</th><th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="attTbody">
+              <tr><td colspan="5" class="empty-td">Pick a date and click Refresh</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="accMgrPanel" class="card hidden" style="border-top:3px solid var(--primary);margin-top:16px;">
+        <div class="card-title">👥 Assign Workers to Supervisors</div>
+        <div class="form-row">
+          <div class="form-group"><label>Supervisor</label><select id="asSup"></select></div>
+          <div class="form-group"><label>Worker (unassigned)</label><select id="asWk"></select></div>
+          <div class="form-group" style="justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="assignWorker()">Assign</button>
+          </div>
+          <div class="form-group" style="justify-content:flex-end;">
+            <button class="btn btn-outline" onclick="loadSupervisors()">🔄 Refresh</button>
+          </div>
+        </div>
+        <hr class="sep">
+        <div id="supList"></div>
+      </div>
+    </section>
+
+  </div><!-- /content -->
+</main>
+
+<!-- RECEIPT MODAL -->
+<div id="receiptOverlay" class="overlay hidden" onclick="handleOverlayClick(event)">
+  <div class="receipt-modal" onclick="event.stopPropagation()">
+    <div class="r-head">
+      <h2>Billing System Pro</h2>
+      <p id="rDate">—</p>
+    </div>
+    <div class="r-cust">
+      <p><strong>Bill No:</strong> <span id="rNo">—</span></p>
+      <p><strong>Customer:</strong> <span id="rCust">—</span></p>
+      <p><strong>Phone:</strong> <span id="rPhone">—</span></p>
+      <p><strong>Worker:</strong> <span id="rWorker">—</span></p>
+    </div>
+    <div class="r-items" id="rItemsContainer"></div>
+    <div class="r-total"><span>TOTAL</span><span id="rTotal">₹0.00</span></div>
+    <div class="r-footer">Thank you for your purchase!</div>
+    <div class="r-actions">
+      <button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Print</button>
+      <button class="btn btn-outline btn-sm" onclick="closeReceipt()">✕ Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ★ LAST BILL SLIDE-IN PANEL ★ -->
+<div id="lbpOverlay" onclick="closeLastBillPanel()"></div>
+<div id="lastBillPanel">
+  <div class="lbp-head">
+    🧾 Last Bill Details
+    <button class="lbp-close" onclick="closeLastBillPanel()">✕</button>
+  </div>
+  <div class="lbp-body" id="lbpBody">
+    <div class="lbp-empty">Tap the button in the sidebar to load the last bill.</div>
+  </div>
+  <div class="lbp-foot">
+    <button class="btn btn-outline btn-sm" onclick="loadLastBillPanel()">🔄 Refresh</button>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+<script src="billing_app.js"></script>
+<script src="sidebar_panel.js"></script>
+</body>
+</html>
